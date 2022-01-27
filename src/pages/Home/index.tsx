@@ -27,16 +27,24 @@ const Home = (): JSX.Element => {
   const { addProduct, cart } = useCart();
 
   const cartItemsAmount = cart.reduce((sumAmount, product) => {
-    // TODO
-    
+    const newSumAmount = { ...sumAmount }
+    newSumAmount[product.id] = product.amount
+
+    return newSumAmount
   }, {} as CartItemsAmount)
+
 
   useEffect(() => {
     async function loadProducts() {
-      // TODO
       try {
-        const response = await api.get('/products')
-        setProducts(response.data)
+        const response = await api.get<Product[]>('/products')
+
+        const data = response.data.map(product => ({
+          ...product,
+          priceFormatted: formatPrice(product.price)
+        }))
+
+        setProducts(data)
       } catch {
         toast.error('Erro no servidor');
       }
@@ -46,16 +54,16 @@ const Home = (): JSX.Element => {
   }, []);
 
   function handleAddProduct(id: number) {
-    // TODO
+    addProduct(id)
   }
 
   return (
     <ProductList>
       {products.map(product =>
-        <li>
+        <li key={product.id}>
           <img src={product.image} alt={product.title} />
           <strong>{product.title}</strong>
-          <span>{product.price}</span>
+          <span>{product.priceFormatted}</span>
           <button
             type="button"
             data-testid="add-product-button"
@@ -63,7 +71,7 @@ const Home = (): JSX.Element => {
           >
             <div data-testid="cart-product-quantity">
               <MdAddShoppingCart size={16} color="#FFF" />
-              {/* {cartItemsAmount[product.id] || 0} */} 2
+              {cartItemsAmount[product.id] || 0}
             </div>
 
             <span>ADICIONAR AO CARRINHO</span>
